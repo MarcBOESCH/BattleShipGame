@@ -1,5 +1,7 @@
 package org.example.battleshipgame.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -13,6 +15,7 @@ public class Ship {
 
     @ManyToOne
     @JoinColumn(name = "player_id")
+    @JsonBackReference
     private Player player;
 
     @ElementCollection
@@ -22,7 +25,6 @@ public class Ship {
     private boolean sunk;
 
     public Ship() {
-
     }
 
     public Ship(Player player, List<Position> positions) {

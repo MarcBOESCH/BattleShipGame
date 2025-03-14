@@ -10,40 +10,46 @@ import java.util.List;
 @Service
 public class PlayerService {
 
-    private final PlayerRepository _playerRepository;
+    private final PlayerRepository playerRepository;
 
     public PlayerService(PlayerRepository playerRepository) {
-        _playerRepository = playerRepository;
+        this.playerRepository = playerRepository;
     }
 
     @Transactional
     public Player createPlayer(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Player name cannot be empty");
+        }
         Player player = new Player(name);
-        return _playerRepository.save(player);
+        return playerRepository.save(player);
     }
 
     public Player getById(Long id) {
-        return  _playerRepository.findById(id)
+        return  playerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Player with id: " + id + "does not exist"));
     }
 
     public List<Player> getAllPlayers() {
-        return _playerRepository.findAll();
+        return playerRepository.findAll();
     }
 
     @Transactional
     public Player changeName(Long playerId, String newName) {
-        Player player = _playerRepository.findById(playerId)
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Player name cannot be empty");
+        }
+        Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new RuntimeException("Player with id: " + playerId + "does not exist"));
         player.setName(newName);
-        return _playerRepository.save(player);
+        return playerRepository.save(player);
     }
 
     @Transactional
     public void deletePlayerById(Long id) {
-        Player player = _playerRepository.findById(id)
+        Player player = playerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Player with id: " + id + "does not exist"));
-        _playerRepository.delete(player);
+        playerRepository.delete(player);
     }
 
 

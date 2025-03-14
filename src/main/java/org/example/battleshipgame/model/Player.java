@@ -1,4 +1,5 @@
 package org.example.battleshipgame.model;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -10,16 +11,15 @@ public class Player {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
     @Column(name = "name", nullable = false)
     private String name;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Ship> ships = new ArrayList<Ship>();
 
     public Player() {
-
     }
 
     public Player(String name) {

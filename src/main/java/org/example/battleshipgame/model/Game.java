@@ -17,13 +17,17 @@ public class Game {
     @Column(nullable = false)
     private GameStatus gameStatus;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "player1_id", referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name = "player1_id")
     private Player player1;
 
-    @OneToOne
-    @JoinColumn(name = "player2_id", referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name = "player2_id")
     private Player player2;
+
+    @ManyToOne
+    @JoinColumn(name = "winner_id")
+    private Player winner;
 
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Guess> guesses = new ArrayList<Guess>();
@@ -39,6 +43,7 @@ public class Game {
         this.player1 = player1;
         this.player2 = player2;
         currentPlayer = 1;
+        winner = null;
     }
 
     public Long getId() {
@@ -69,6 +74,21 @@ public class Game {
         this.player2 = player2;
     }
 
+    public List<Player> getAllPlayers() {
+        List<Player> players = new ArrayList<Player>();
+        players.add(player1);
+        players.add(player2);
+        return players;
+    }
+
+    public Player getWinner() {
+        return winner;
+    }
+
+    public void setWinner(Player winner) {
+        this.winner = winner;
+    }
+
     public int getCurrentPlayer() {
         return currentPlayer;
     }
@@ -78,6 +98,6 @@ public class Game {
     }
 
     public void switchPlayer() {
-        currentPlayer = (currentPlayer == 0) ? 2 : 1;
+        currentPlayer = (currentPlayer == 1) ? 2 : 1;
     }
 }

@@ -6,17 +6,17 @@ import java.util.List;
 
 public class PlaceShipRequest {
 
-    private List<Position> _positions;
+    private List<Position> positions;
 
     public PlaceShipRequest() {
 
     }
 
     public List<Position> getPositions() {
-        return _positions;
+        return positions;
     }
 
     public void setPositions(List<Position> positions) {
-        _positions = positions;
+        this.positions = positions;
     }
 }

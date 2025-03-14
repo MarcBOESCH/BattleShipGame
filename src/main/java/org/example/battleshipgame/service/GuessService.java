@@ -7,24 +7,26 @@ import org.example.battleshipgame.repository.GuessRepository;
 import org.example.battleshipgame.repository.PlayerRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class GuessService {
 
-    private final GuessRepository _guessRepository;
-    private final GameRepository _gameRepository;
-    private final PlayerRepository _playerRepository;
+    private final GuessRepository guessRepository;
+    private final GameRepository gameRepository;
+    private final PlayerRepository playerRepository;
 
 
 
     public GuessService(GuessRepository guessRepository, GameRepository gameRepository, PlayerRepository playerRepository) {
-        _guessRepository = guessRepository;
-        _gameRepository = gameRepository;
-        _playerRepository = playerRepository;
+        this.guessRepository = guessRepository;
+        this.gameRepository = gameRepository;
+        this.playerRepository = playerRepository;
     }
 
     @Transactional
     public Guess makeGuess(Long gameId, Long playerId, Position position) {
-        Game game = _gameRepository.findById(gameId)
+        Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game with id: " + gameId + " does not exist"));
 
         Player player1 = game.getPlayer1();
@@ -51,21 +53,7 @@ public class GuessService {
         }
 
         // Checks if any of the opponent´s ships are placed on the guessed position
-        boolean isHit = false;
-        if (opponent.getShips() != null) {
-            for (Ship ship: opponent.getShips()) {
-                for (Position pos: ship.getPositions()) {
-                    if (pos.getRow() == position.getRow() && pos.getColumn() == position.getColumn()) {
-                        isHit = true;
-                        // Additonal logic for marking parts of the ship as hit
-                        break;
-                    }
-                }
-                if (isHit) {
-                    break;
-                }
-            }
-        }
+        boolean isHit = checkIfHit(opponent, position);
 
         // Creates and saves the guess
         Guess guess = new Guess();
@@ -73,14 +61,31 @@ public class GuessService {
         guess.setPlayer(guessingPlayer);
         guess.setPosition(position);
         guess.setHit(isHit);
-        _guessRepository.save(guess);
+        guessRepository.save(guess);
 
         if (!isHit) {
             game.switchPlayer();
-            _gameRepository.save(game);
+            gameRepository.save(game);
         }
 
         return guess;
+    }
+
+    public List<Guess> getAllGuesses(Long gameId, Long playerId) {
+        return guessRepository.findAllByGameIdAndPlayerId(gameId, playerId);
+    }
+
+    private boolean checkIfHit(Player opponent, Position position) {
+        if (opponent != null && opponent.getShips() != null) {
+            for (Ship ship : opponent.getShips()) {
+                for (Position pos : ship.getPositions()) {
+                    if (pos.getRowPos() == position.getRowPos() && pos.getColPos() == position.getColPos()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
 

@@ -11,71 +11,62 @@ import java.util.List;
 
 @Service
 public class GameService {
-    private final GameRepository _gameRepository;
-    private final PlayerRepository _playerRepository;
-    private final ShipRepository _shipRepository;
+    private final GameRepository gameRepository;
+    private final PlayerRepository playerRepository;
+    private final ShipRepository shipRepository;
 
     public GameService(GameRepository gameRepository, PlayerRepository playerRepository, ShipRepository shipRepository) {
-        _gameRepository = gameRepository;
-        _playerRepository = playerRepository;
-        _shipRepository = shipRepository;
+        this.gameRepository = gameRepository;
+        this.playerRepository = playerRepository;
+        this.shipRepository = shipRepository;
     }
 
     @Transactional
-    public Game createGame(Player player1, Player player2) {
-        Game game = new Game(GameStatus.CREATED, player1, player2);
+    public Game createGame(Player player1) {
+        if (player1 == null) {
+            throw new IllegalArgumentException("The game needs at least one player to start");
+        }
+        Game game = new Game();
+        game.setGameStatus(GameStatus.CREATED);
+        game.setPlayer1(player1);
         game.setCurrentPlayer(1);
-
-        return _gameRepository.save(game);
+        return gameRepository.save(game);
     }
     @Transactional
     public Player addPlayerToGame(Long gameId, Player player) {
-        Game game = _gameRepository.findById(gameId).orElseThrow(() -> new RuntimeException("Spiel nicht gefunden"));
+        Game game = gameRepository.findById(gameId).orElseThrow(() -> new RuntimeException("Game with id: " + gameId + " not found"));
 
-        Player savedPlayer = _playerRepository.save(player);
+        Player savedPlayer = playerRepository.save(player);
 
         if (game.getPlayer1() == null) {
             game.setPlayer1(savedPlayer);
         } else if (game.getPlayer2() == null) {
             game.setPlayer2(savedPlayer);
         } else {
-            throw new IllegalArgumentException("There are two players assigned to this game already!");
+            throw new IllegalArgumentException("There are already two players assigned to this game!");
         }
-        _gameRepository.save(game);
+        gameRepository.save(game);
         return savedPlayer;
     }
 
     @Transactional
     public Ship placeShip(Long playerId, List<Position> positions) {
-        Player player = _playerRepository.findById(playerId).orElseThrow(() -> new RuntimeException("Player was not found"));
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new RuntimeException("Player with id: " + playerId + " not found"));
         Ship ship = new Ship(player, positions);
         player.addShip(ship);
-        return _shipRepository.save(ship);
-    }
-
-    @Transactional
-    public Guess makeGuess(Long gameId, Long guessingPlayerId, Position position) {
-        Game game = _gameRepository.findById(gameId).orElseThrow(() -> new RuntimeException("Game not found"));
-
-        Player opponent = (game.getPlayer1().getId().equals(guessingPlayerId)) ? game.getPlayer2() : game.getPlayer1();
-
-        Guess guess = new Guess();
-        guess.setPosition(position);
-
-        //guess.setHit(ergebnis)
-
-        game.switchPlayer();
-        _gameRepository.save(game);
-        return guess;
+        return shipRepository.save(ship);
     }
 
     @Transactional
     public Game startGame(Long gameId) {
-        Game game = _gameRepository.findById(gameId).orElseThrow(() -> new RuntimeException("Game not found"));
-
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Game with id: " + gameId + " not found"));
+        if (game.getPlayer1() == null || game.getPlayer2() == null) {
+            throw new RuntimeException("Game cannot start without two players");
+        }
         game.setGameStatus(GameStatus.IN_PROGRESS);
-        return _gameRepository.save(game);
+        return gameRepository.save(game);
     }
-
 
 }
